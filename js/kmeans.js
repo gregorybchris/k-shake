@@ -82,8 +82,8 @@ export class KMeans {
             let xSum = 0
             let ySum = 0
             for (let p = 0; p < nPoints; p++) {
-                xSum += points[p].x
-                ySum += points[p].y
+                xSum += points[assignments[c][p]].x
+                ySum += points[assignments[c][p]].y
             }
             centroids[c].x = xSum / nPoints
             centroids[c].y = ySum / nPoints
