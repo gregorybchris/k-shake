@@ -38,7 +38,7 @@ function setPointSize(size) {
 setPointSize(1);
 clearCanvas();
 
-var url = "/data/earthquakes-medium.geojson";
+var url = "data/earthquakes-medium.geojson";
 fetch(url).then(function(response) {
   return response.json();
 }).then(function(response) {
