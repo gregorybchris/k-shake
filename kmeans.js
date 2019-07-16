@@ -22,12 +22,12 @@ function clearCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-function drawPoint(x,y) {
+function drawPoint(x,y,mag) {
   var ctx = document.getElementById("canvas").getContext("2d");
   ctx.fillStyle = "#ff2626"; // Red color
   ctx.beginPath(); //Start path
   // Draw a point using the arc function of the canvas with a point structure.
-  ctx.arc(x, y, pointSize, 0, Math.PI * 2, true);
+  ctx.arc(x, y, Math.sqrt(10**mag / 100000), 0, Math.PI * 2, true);
   ctx.fill(); // Close the path and fill.
 }
 
@@ -35,39 +35,51 @@ function setPointSize(size) {
   pointSize = size;
 }
 
-setPointSize(1);
-clearCanvas();
+async function downloadPoints(url) {
+  var json = await fetch(url).then(response => response.json());
+  var features = json.features;
+  var quakes = features.map(feature => {
+    return {coord: feature.geometry.coordinates, mag: feature.properties.mag};
+  });
+  // Flip the image
+  quakes.forEach(quake => {
+    quake.coord[1] = -quake.coord[1];
+  });
 
-var url = "data/earthquakes-medium.geojson";
-fetch(url).then(function(response) {
-  return response.json();
-}).then(function(response) {
-  var features = response.features;
-  return features.map(feature => {
-    return feature.geometry.coordinates;
-  });
-}).then(function(coords) {
-  coords.forEach(coord => {
-    coord[1] = -coord[1];
-  });
-  return coords;
-}).then(function(coords) {
-  var adjust_x = coords[0][0];
-  var adjust_y = coords[0][1];
-  coords.forEach(coord => {
-    if (coord[0] < adjust_x) adjust_x = coord[0];
-    if (coord[1] < adjust_y) adjust_y = coord[1];
+  // Adjust the points to fit in the canvas (0, 0) at center => (0, 0) at top
+  // left
+  var adjust_x = quakes[0].coord[0];
+  var adjust_y = quakes[0].coord[1];
+  var scale = 10;
+  quakes.forEach(quake => {
+    if (quake.coord[0] < adjust_x) adjust_x = quake.coord[0];
+    if (quake.coord[1] < adjust_y) adjust_y = quake.coord[1];
   });
   adjust_x = Math.abs(adjust_x);
   adjust_y = Math.abs(adjust_y);
-  coords.forEach(coord => {
-    coord[0] += adjust_x;
-    coord[1] += adjust_y;
+  quakes.forEach(quake => {
+    quake.coord[0] += adjust_x;
+    quake.coord[1] += adjust_y;
   });
-  return coords;
-}).then(function(coords) {
-  console.log(coords);
-  coords.forEach(coord => {
-    drawPoint(coord[0]*2, coord[1]*2);
+  return quakes;
+}
+
+function renderQuakes(quakes) {
+  clearCanvas();
+  setPointSize(1);
+  quakes.forEach(quake => {
+    drawPoint(quake.coord[0]*2, quake.coord[1]*2, quake.mag);
   });
-});
+}
+
+(async () => {
+  var url = "data/earthquakes.geojson";
+  var quakes = await downloadPoints(url);
+  var num_iterations = 1;
+  var t = performance.now();
+  for (var i = 0; i < num_iterations; i++) {
+    renderQuakes(quakes);
+  }
+  var ms_per_iteration = (performance.now() - t)/num_iterations;
+  console.log(1000/ms_per_iteration, "fps");
+})();
