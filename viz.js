@@ -1,15 +1,26 @@
+import { KMeans } from "./js/kmeans.js";
+
 function clearCanvas(canvas) {
   var ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-function drawQuake(canvas, x,y,mag) {
+function drawColoredQuake(canvas,color, x,y,mag) {
   var ctx = canvas.getContext("2d");
-  ctx.fillStyle = "#ff2626"; // Red color
+  ctx.fillStyle = color;
+  // To draw rectangles (faster):
+  // var width = Math.sqrt(10**mag / 100000);
+  // ctx.fillRect(x, y, width, width);
   ctx.beginPath(); //Start path
-  // Draw a point using the arc function of the canvas with a point structure.
-  ctx.arc(x, y, Math.sqrt(10**mag / 100000), 0, Math.PI * 2, true);
-  ctx.fill(); // Close the path and fill.
+  // Weighted by sqrt(magnitude) -- so the area scales linearly with magnitude.
+  // ctx.arc(x, y, Math.sqrt(10**mag / 100000), 0, Math.PI * 2, true);
+  ctx.arc(x, y, 1, 0, Math.PI * 2, true);
+  ctx.fill();
+}
+
+function drawQuake(canvas, x,y,mag) {
+  // Red color
+  drawColoredQuake(canvas, "#ff2626", x, y, mag);
 }
 
 async function downloadPoints(url) {
@@ -53,11 +64,24 @@ function renderQuakes(canvas, quakes) {
   var canvas = document.getElementById("canvas");
   var url = "data/earthquakes.geojson";
   var quakes = await downloadPoints(url);
-  var num_iterations = 10;
-  var t = performance.now();
-  for (var i = 0; i < num_iterations; i++) {
-    renderQuakes(canvas, quakes);
+
+  // TODO(emacs): Iterate and show the results as they go. We want a generator
+  // that yields current assignments at each step.
+  var kmeans = new KMeans();
+  // d3 d10 color map
+  let colors = [
+    "#1f77b4",
+    "#ff7f0e",
+    "#2ca02c",
+    "#d62728",
+  ];
+  var k = colors.length;
+  var clusters = kmeans.compute(quakes, k, /*normalize=*/false);
+  clearCanvas(canvas);
+
+  for (var i = 0; i < quakes.length; i++) {
+    var quake = quakes[i];
+    drawColoredQuake(canvas, colors[clusters[i]],
+                     quake.x*2, quake.y*2, quake.mag);
   }
-  var ms_per_iteration = (performance.now() - t)/num_iterations;
-  console.log(1000/ms_per_iteration, "fps");
 })();
