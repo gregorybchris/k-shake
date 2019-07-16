@@ -39,27 +39,28 @@ async function downloadPoints(url) {
   var json = await fetch(url).then(response => response.json());
   var features = json.features;
   var quakes = features.map(feature => {
-    return {coord: feature.geometry.coordinates, mag: feature.properties.mag};
+    var coords = feature.geometry.coordinates;
+    return {x: coords[0], y: coords[1], mag: feature.properties.mag};
   });
   // Flip the image
   quakes.forEach(quake => {
-    quake.coord[1] = -quake.coord[1];
+    quake.y = -quake.y;
   });
 
   // Adjust the points to fit in the canvas (0, 0) at center => (0, 0) at top
   // left
-  var adjust_x = quakes[0].coord[0];
-  var adjust_y = quakes[0].coord[1];
+  var adjust_x = quakes[0].x;
+  var adjust_y = quakes[0].y;
   var scale = 10;
   quakes.forEach(quake => {
-    if (quake.coord[0] < adjust_x) adjust_x = quake.coord[0];
-    if (quake.coord[1] < adjust_y) adjust_y = quake.coord[1];
+    if (quake.x < adjust_x) adjust_x = quake.x;
+    if (quake.y < adjust_y) adjust_y = quake.y;
   });
   adjust_x = Math.abs(adjust_x);
   adjust_y = Math.abs(adjust_y);
   quakes.forEach(quake => {
-    quake.coord[0] += adjust_x;
-    quake.coord[1] += adjust_y;
+    quake.x += adjust_x;
+    quake.y += adjust_y;
   });
   return quakes;
 }
@@ -68,7 +69,7 @@ function renderQuakes(quakes) {
   clearCanvas();
   setPointSize(1);
   quakes.forEach(quake => {
-    drawPoint(quake.coord[0]*2, quake.coord[1]*2, quake.mag);
+    drawPoint(quake.x*2, quake.y*2, quake.mag);
   });
 }
 
