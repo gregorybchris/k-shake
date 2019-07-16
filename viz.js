@@ -1,38 +1,15 @@
-document.getElementById("canvas").onclick = function (e) {
-  getPosition(e); 
-};
-
-var pointSize = 3;
-
-function getPosition(event){
-  var rect = canvas.getBoundingClientRect();
-  // x == the location of the click in the document - the location (relative to
-  // the left) of the canvas in the document
-  var x = event.clientX - rect.left;
-  // y == the location of the click in the document - the location (relative to
-  // the top) of the canvas in the document
-  var y = event.clientY - rect.top;
-  // This method will handle the coordinates and will draw them in the canvas.
-  drawPoint(x,y);
-}
-
-function clearCanvas() {
-  var canvas = document.getElementById("canvas");
+function clearCanvas(canvas) {
   var ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-function drawPoint(x,y,mag) {
-  var ctx = document.getElementById("canvas").getContext("2d");
+function drawQuake(canvas, x,y,mag) {
+  var ctx = canvas.getContext("2d");
   ctx.fillStyle = "#ff2626"; // Red color
   ctx.beginPath(); //Start path
   // Draw a point using the arc function of the canvas with a point structure.
   ctx.arc(x, y, Math.sqrt(10**mag / 100000), 0, Math.PI * 2, true);
   ctx.fill(); // Close the path and fill.
-}
-
-function setPointSize(size) {
-  pointSize = size;
 }
 
 async function downloadPoints(url) {
@@ -65,21 +42,21 @@ async function downloadPoints(url) {
   return quakes;
 }
 
-function renderQuakes(quakes) {
-  clearCanvas();
-  setPointSize(1);
+function renderQuakes(canvas, quakes) {
+  clearCanvas(canvas);
   quakes.forEach(quake => {
-    drawPoint(quake.x*2, quake.y*2, quake.mag);
+    drawQuake(canvas, quake.x*2, quake.y*2, quake.mag);
   });
 }
 
 (async () => {
+  var canvas = document.getElementById("canvas");
   var url = "data/earthquakes.geojson";
   var quakes = await downloadPoints(url);
-  var num_iterations = 1;
+  var num_iterations = 10;
   var t = performance.now();
   for (var i = 0; i < num_iterations; i++) {
-    renderQuakes(quakes);
+    renderQuakes(canvas, quakes);
   }
   var ms_per_iteration = (performance.now() - t)/num_iterations;
   console.log(1000/ms_per_iteration, "fps");
