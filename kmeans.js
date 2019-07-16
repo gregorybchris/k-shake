@@ -38,9 +38,7 @@ function setPointSize(size) {
 setPointSize(1);
 clearCanvas();
 
-// var url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
-// var url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
-var url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson";
+var url = "/data/earthquakes-medium.geojson";
 fetch(url).then(function(response) {
   return response.json();
 }).then(function(response) {
