@@ -1,4 +1,4 @@
-import { KMeans } from "./js/kmeans.js";
+import { KMeans } from "./kmeans.js";
 
 function clearCanvas(canvas) {
   var ctx = canvas.getContext("2d");
@@ -62,7 +62,7 @@ function renderQuakes(canvas, quakes) {
 
 (async () => {
   var canvas = document.getElementById("canvas");
-  var url = "data/earthquakes.geojson";
+  var url = "../data/earthquakes.geojson";
   var quakes = await downloadPoints(url);
 
   // TODO(emacs): Iterate and show the results as they go. We want a generator
@@ -70,18 +70,33 @@ function renderQuakes(canvas, quakes) {
   var kmeans = new KMeans();
   // d3 d10 color map
   let colors = [
-    "#1f77b4",
-    "#ff7f0e",
-    "#2ca02c",
-    "#d62728",
+    '#1f77b4',
+    '#ff7f0e',
+    '#2ca02c',
+    '#d62728',
+    '#9467bd',
+    '#8c564b',
+    '#e377c2',
+    '#7f7f7f',
+    '#bcbd22',
+    '#17becf'
   ];
-  var k = colors.length;
-  var clusters = kmeans.compute(quakes, k, /*normalize=*/false);
+
+  const urlParams = new URLSearchParams(window.location.search);
+  let k = +urlParams.get('k');
+  if (k === null)
+    k = 5;
+  if (k > colors.length)
+    k = colors.length
+
+  const labels = kmeans.cluster(quakes, k, /*normalize=*/true);
   clearCanvas(canvas);
 
-  for (var i = 0; i < quakes.length; i++) {
-    var quake = quakes[i];
-    drawColoredQuake(canvas, colors[clusters[i]],
-                     quake.x*2, quake.y*2, quake.mag);
+  for (let i = 0; i < quakes.length; i++) {
+    let quake = quakes[i];
+    let color = colors[labels[i]]
+    drawColoredQuake(canvas, color,
+                     quake.x * 2, quake.y * 2,
+                     quake.mag);
   }
 })();
