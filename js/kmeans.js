@@ -14,14 +14,14 @@ export class KMeans {
         return labels
     }
 
-    * visualize(points, k, iterations=20) {
+    * visualize(points, k) {
         // Compute cluster labels for every iteration and yield them
 
         let pts = points.map(p => ({x: p.x, y: p.y}))
         pts = this._normalizePoints(pts)
         const centroids = this._initializeCentroids(k)
         const assignments = {}
-        for (let i = 0; i < iterations; i++) {
+        while (true) {
             this._findClosest(centroids, assignments, pts)
             this._updateCentroids(centroids, assignments, pts)
             let labels = this._assignmentsToLabels(assignments, pts)
