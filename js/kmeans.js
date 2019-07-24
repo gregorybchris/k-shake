@@ -1,61 +1,52 @@
 export class KMeans {
-    constructor() {
-        this.scale = 1
-    }
+    constructor() {}
 
-    compute(points, k, normalize=false, iterations=20) {
+    cluster(points, k, iterations=20) {
         // Compute cluster labels for each point
-        if (normalize)
-            this.normalizePoints(points)
-        else
-            this.setScale(points)
 
-        const centroids = []
-        this.initializeCentroids(centroids, k)
+        const iterator = this.visualize(points, k, iterations)
+        let labels = []
+        let result = iterator.next()
+        while (!result.done) {
+            labels = result.value
+            result = iterator.next()
+        }
+        return labels
+    }
 
+    * visualize(points, k) {
+        // Compute cluster labels for every iteration and yield them
+
+        let pts = points.map(p => ({x: p.x, y: p.y}))
+        pts = this._normalizePoints(pts)
+        const centroids = this._initializeCentroids(k)
         const assignments = {}
-        for (let i = 0; i < iterations; i++) {
-            this.findClosest(centroids, assignments, points)
-            this.updateCentroids(centroids, assignments, points)
+        while (true) {
+            this._findClosest(centroids, assignments, pts)
+            this._updateCentroids(centroids, assignments, pts)
+            let labels = this._assignmentsToLabels(assignments, pts)
+            yield labels
         }
-        return this.concatenateAssignments(assignments, points)
     }
 
-    getMaxMin(points) {
-        let xMax = 0
-        let yMax = 0
-        points.forEach(point => {
-            if (point.x > xMax)
-                xMax = point.x
-            if (point.y > yMax)
-                yMax = point.y
-        })
-        return {x: xMax, y: yMax}
+    _getMax(points) {
+        const max = Math.max
+        return points.reduce((a, c) => ({x: max(a.x, c.x), y: max(a.y, c.y)}))
     }
 
-    setScale(points) {
-        const max = this.getMaxMin(points)
-        this.scale = Math.log10(max.x)
+    _normalizePoints(points) {
+        const max = this._getMax(points)       
+        return points.map(p => ({x: p.x / max.x, y: p.y / max.y}))
     }
 
-    normalizePoints(points) {
-        const max = this.getMaxMin(points)        
-        points.forEach(point => {
-            point.x = point.x / max.x
-            point.y = point.y / max.y
-        })
-    }
-
-    initializeCentroids(centroids, k) {
+    _initializeCentroids(k) {
         // Randomly initialize k centroids
-        for (let i = 0; i < k; i++) {
-            let x = Math.random() * this.scale
-            let y = Math.random() * this.scale
-            centroids.push({x: x, y: y})
-        }
+        const indices = [...Array(k).keys()]
+        const rand = Math.random
+        return indices.map(_ => ({x: rand(), y: rand()}))
     }
 
-    findClosest(centroids, assignments, points) {
+    _findClosest(centroids, assignments, points) {
         // Determine closest centroid for each point
         for (let c = 0; c < centroids.length; c++)
             assignments[c] = []
@@ -63,7 +54,7 @@ export class KMeans {
             let bestCentroid = -1
             let bestDistance = Infinity
             for (let c = 0; c < centroids.length; c++) {
-                let d = this.distance(centroids[c], points[p])
+                let d = this._distance(centroids[c], points[p])
                 if (d < bestDistance) {
                     bestCentroid = c
                     bestDistance = d
@@ -73,7 +64,7 @@ export class KMeans {
         }
     }
 
-    updateCentroids(centroids, assignments, points) {
+    _updateCentroids(centroids, assignments, points) {
         // Recompute centroids
         for (let c = 0; c < centroids.length; c++) {
             let nPoints = assignments[c].length
@@ -90,7 +81,7 @@ export class KMeans {
         }
     }
 
-    concatenateAssignments(assignments, points) {
+    _assignmentsToLabels(assignments, points) {
         // Concatenate assignments
         const labels = new Array(points.length).fill(0);
         for (let c in assignments) {
@@ -101,7 +92,7 @@ export class KMeans {
         return labels
     }
 
-    distance(p1, p2) {
+    _distance(p1, p2) {
         // Compute distance between two points
         let dx = (p2.x - p1.x) * (p2.x - p1.x)
         let dy = (p2.y - p1.y) * (p2.y - p1.y)
