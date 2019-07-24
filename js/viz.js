@@ -37,18 +37,9 @@ async function downloadPoints(url) {
 
   // Adjust the points to fit in the canvas (0, 0) at center => (0, 0) at top
   // left
-  var adjust_x = quakes[0].x;
-  var adjust_y = quakes[0].y;
-  var scale = 10;
   quakes.forEach(quake => {
-    if (quake.x < adjust_x) adjust_x = quake.x;
-    if (quake.y < adjust_y) adjust_y = quake.y;
-  });
-  adjust_x = Math.abs(adjust_x);
-  adjust_y = Math.abs(adjust_y);
-  quakes.forEach(quake => {
-    quake.x += adjust_x;
-    quake.y += adjust_y;
+    quake.x += 180;
+    quake.y += 90;
   });
   return quakes;
 }

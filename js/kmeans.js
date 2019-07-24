@@ -34,7 +34,7 @@ export class KMeans {
     }
 
     _normalizePoints(points) {
-        const max = this._getMax(points)       
+        const max = this._getMax(points)
         return points.map(p => ({x: p.x / max.x, y: p.y / max.y}))
     }
 
@@ -92,9 +92,11 @@ export class KMeans {
     }
 
     _distance(p1, p2) {
-        // Compute distance between two points
-        let dx = (p2.x - p1.x) * (p2.x - p1.x)
-        let dy = (p2.y - p1.y) * (p2.y - p1.y)
-        return Math.sqrt(dx + dy)
+        // Compute distance between two points (wrap horizontally)
+        let dx_orig = Math.abs(p2.x - p1.x)
+        let dx_shifted = Math.abs((p2.x+0.5)%1 - (p1.x+0.5)%1)
+        let dx = dx_orig < dx_shifted ? dx_orig : dx_shifted
+        let dy = p2.y - p1.y
+        return Math.sqrt(dx*dx + dy*dy)
     }
 }
