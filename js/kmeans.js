@@ -3,26 +3,25 @@ export class KMeans {
 
     cluster(points, k, iterations=20) {
         // Compute cluster labels for each point
-
-        const iterator = this.visualize(points, k, iterations)
+        const iterator = this.visualize(points, k)
         let labels = []
-        let result = iterator.next()
-        while (!result.done) {
+        for (let i = 0; i < iterations; i++) {
+            let result = iterator.next()
+            if (result.done)
+                break
             labels = result.value
-            result = iterator.next()
         }
         return labels
     }
 
     * visualize(points, k) {
         // Compute cluster labels for every iteration and yield them
-
         let pts = points.map(p => ({x: p.x, y: p.y}))
         pts = this._normalizePoints(pts)
         const centroids = this._initializeCentroids(k)
         const assignments = {}
         while (true) {
-            this._findClosest(centroids, assignments, pts)
+            this._updateAssignments(centroids, assignments, pts)
             this._updateCentroids(centroids, assignments, pts)
             let labels = this._assignmentsToLabels(assignments, pts)
             yield labels
@@ -46,7 +45,7 @@ export class KMeans {
         return indices.map(_ => ({x: rand(), y: rand()}))
     }
 
-    _findClosest(centroids, assignments, points) {
+    _updateAssignments(centroids, assignments, points) {
         // Determine closest centroid for each point
         for (let c = 0; c < centroids.length; c++)
             assignments[c] = []

@@ -84,12 +84,12 @@ function renderQuakes(canvas, quakes) {
 
   const urlParams = new URLSearchParams(window.location.search);
   let k = +urlParams.get('k');
-  if (k === null)
+  if (k === null || k < 2)
     k = 5;
   if (k > colors.length)
-    k = colors.length
+    k = colors.length;
 
-  const labels = kmeans.cluster(quakes, k, /*normalize=*/true);
+  const labels = kmeans.cluster(quakes, k);
   clearCanvas(canvas);
 
   for (let i = 0; i < quakes.length; i++) {
