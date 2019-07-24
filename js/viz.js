@@ -62,7 +62,7 @@ function renderQuakes(canvas, quakes) {
 
 (async () => {
   var canvas = document.getElementById("canvas");
-  var url = "../data/earthquakes.geojson";
+  var url = "./data/earthquakes.geojson";
   var quakes = await downloadPoints(url);
 
   // TODO(emacs): Iterate and show the results as they go. We want a generator
