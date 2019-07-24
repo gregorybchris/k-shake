@@ -16,8 +16,7 @@ export class KMeans {
 
     * visualize(points, k) {
         // Compute cluster labels for every iteration and yield them
-        let pts = points.map(p => ({x: p.x, y: p.y}))
-        pts = this._normalizePoints(pts)
+        const pts = points.map(p => ({x: p.x, y: p.y}))
         const centroids = this._initializeCentroids(k)
         const assignments = {}
         while (true) {
@@ -33,16 +32,15 @@ export class KMeans {
         return points.reduce((a, c) => ({x: max(a.x, c.x), y: max(a.y, c.y)}))
     }
 
-    _normalizePoints(points) {
-        const max = this._getMax(points)       
-        return points.map(p => ({x: p.x / max.x, y: p.y / max.y}))
+    getRandomInt(max) {
+      return Math.floor(Math.random() * Math.floor(max));
     }
 
     _initializeCentroids(k) {
         // Randomly initialize k centroids
         const indices = [...Array(k).keys()]
-        const rand = Math.random
-        return indices.map(_ => ({x: rand(), y: rand()}))
+        const rand = this.getRandomInt
+        return indices.map(_ => ({x: rand(360), y: rand(180)}))
     }
 
     _updateAssignments(centroids, assignments, points) {
